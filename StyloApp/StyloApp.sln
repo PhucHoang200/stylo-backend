@@ -3,13 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.11.35312.102
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StyloApp.API", "StyloApp.API\StyloApp.API.csproj", "{57795581-658E-4CEE-A308-1D927397FD79}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StyloApp.Application", "StyloApp.Application\StyloApp.Application.csproj", "{0D0091F1-8A33-459C-8ED5-D13AD3BA5ED0}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StyloApp.Infrastructure", "StyloApp.Infrastructure\StyloApp.Infrastructure.csproj", "{C1ACA25F-5421-4C0E-8EB0-CDABDF03FE63}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StyloApp.Domain", "StyloApp.Domain\StyloApp.Domain.csproj", "{ECD4DD9F-0FA4-4EDE-8FF7-3628032C5748}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "StyloApp.API", "StyloApp.API\StyloApp.API.csproj", "{57795581-658E-4CEE-A308-1D927397FD79}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -21,18 +15,6 @@ Global
 		{57795581-658E-4CEE-A308-1D927397FD79}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{57795581-658E-4CEE-A308-1D927397FD79}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{57795581-658E-4CEE-A308-1D927397FD79}.Release|Any CPU.Build.0 = Release|Any CPU
-		{0D0091F1-8A33-459C-8ED5-D13AD3BA5ED0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{0D0091F1-8A33-459C-8ED5-D13AD3BA5ED0}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{0D0091F1-8A33-459C-8ED5-D13AD3BA5ED0}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{0D0091F1-8A33-459C-8ED5-D13AD3BA5ED0}.Release|Any CPU.Build.0 = Release|Any CPU
-		{C1ACA25F-5421-4C0E-8EB0-CDABDF03FE63}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{C1ACA25F-5421-4C0E-8EB0-CDABDF03FE63}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{C1ACA25F-5421-4C0E-8EB0-CDABDF03FE63}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{C1ACA25F-5421-4C0E-8EB0-CDABDF03FE63}.Release|Any CPU.Build.0 = Release|Any CPU
-		{ECD4DD9F-0FA4-4EDE-8FF7-3628032C5748}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{ECD4DD9F-0FA4-4EDE-8FF7-3628032C5748}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{ECD4DD9F-0FA4-4EDE-8FF7-3628032C5748}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{ECD4DD9F-0FA4-4EDE-8FF7-3628032C5748}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
