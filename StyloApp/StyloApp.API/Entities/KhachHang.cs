@@ -25,7 +25,7 @@ public partial class KhachHang
 
     public DateTime? DeletedAt { get; set; }
 
-    public virtual ICollection<DanhGium> DanhGia { get; set; } = new List<DanhGium>();
+    public virtual ICollection<DanhGia> DanhGia { get; set; } = new List<DanhGia>();
 
     public virtual ICollection<DonHang> DonHangs { get; set; } = new List<DonHang>();
 

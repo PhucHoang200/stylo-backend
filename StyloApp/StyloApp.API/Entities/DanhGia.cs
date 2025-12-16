@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace StyloApp.API.Entities;
 
-public partial class DanhGium
+public partial class DanhGia
 {
     public long ReviewId { get; set; }
 

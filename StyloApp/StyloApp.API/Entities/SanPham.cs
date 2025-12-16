@@ -23,7 +23,7 @@ public partial class SanPham
 
     public virtual ICollection<AnhSanPham> AnhSanPhams { get; set; } = new List<AnhSanPham>();
 
-    public virtual ICollection<DanhGium> DanhGia { get; set; } = new List<DanhGium>();
+    public virtual ICollection<DanhGia> DanhGia { get; set; } = new List<DanhGia>();
 
     public virtual ICollection<SanPhamBienThe> SanPhamBienThes { get; set; } = new List<SanPhamBienThe>();
 
