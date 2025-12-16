@@ -1,6 +1,7 @@
 using StyloApp.API.Services;
 using StyloApp.API.Data;
 using Microsoft.EntityFrameworkCore;
+using StyloApp.API.Core.Middlewares;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -27,6 +28,10 @@ if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
+}
+else
+{
+    app.UseMiddleware<ExceptionMiddleware>();
 }
 
 app.UseHttpsRedirection();
