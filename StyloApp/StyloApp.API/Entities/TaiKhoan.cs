@@ -21,6 +21,8 @@ public partial class TaiKhoan
 
     public virtual ICollection<KhachHang> KhachHangs { get; set; } = new List<KhachHang>();
 
+    public virtual ICollection<DiaChi> DiaChis { get; set; } = new List<DiaChi>();
+
     public virtual NhanVien? NhanVien { get; set; }
 
     public virtual Role? Role { get; set; }
