@@ -32,6 +32,7 @@ builder.Services.AddDbContext<FashionShopContext>(options =>
     ));
 
 builder.Services.AddControllers();
+builder.Services.AddHttpClient();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 //builder.Services.AddSwaggerGen();
@@ -63,6 +64,7 @@ builder.Services.AddMemoryCache();
 builder.Services.AddScoped<AuthService>();
 builder.Services.AddScoped<EmailService>();
 builder.Services.AddScoped<AccountService>();
+builder.Services.AddScoped<ProductService>();
 // --- 4. CẤU HÌNH AUTHENTICATION (Xác thực JWT) ---
 builder.Services.AddAuthentication(options => {
     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
