@@ -50,5 +50,21 @@ namespace StyloApp.API.Controllers
             await _accountService.SetDefaultAddressAsync(GetUserId(), id);
             return Ok();
         }
+
+        [HttpPost("addresses")]
+        public async Task<IActionResult> AddAddress(AddressDto dto)
+        {
+            await _accountService.AddAddressAsync(User.GetUserId(), dto);
+            return Ok(new { message = "Thêm địa chỉ thành công" });
+        }
+
+        [HttpDelete("addresses/{id}")]
+        public async Task<IActionResult> DeleteAddress(int id)
+        {
+            var result = await _accountService.DeleteAddressAsync(User.GetUserId(), id);
+            if (!result) return NotFound(new { message = "Không tìm thấy địa chỉ hoặc bạn không có quyền xóa" });
+
+            return Ok(new { message = "Xóa địa chỉ thành công" });
+        }
     }
 }

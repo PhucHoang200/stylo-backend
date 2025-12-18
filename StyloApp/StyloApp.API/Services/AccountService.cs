@@ -1,6 +1,7 @@
 ﻿using StyloApp.API.Data;
 using StyloApp.API.DTOs;
 using Microsoft.EntityFrameworkCore;
+using StyloApp.API.Entities;
 
 namespace StyloApp.API.Services
 {
@@ -72,5 +73,56 @@ namespace StyloApp.API.Services
             await _context.SaveChangesAsync();
         }
 
+        // Thêm địa chỉ mới
+        public async Task AddAddressAsync(int userId, AddressDto dto)
+        {
+            // Kiểm tra xem người dùng đã có địa chỉ nào chưa
+            var hasAddress = await _context.DiaChis.AnyAsync(a => a.TaiKhoanId == userId);
+
+            var newAddress = new DiaChi
+            {
+                TaiKhoanId = userId,
+                DiaChiChiTiet = dto.DiaChiChiTiet,
+                LoaiDiaChi = dto.LoaiDiaChi,
+                // Nếu là địa chỉ đầu tiên thì đặt làm mặc định luôn
+                IsDefault = !hasAddress || (dto.IsDefault),
+                CreatedAt = DateTime.Now,
+                UpdatedAt = DateTime.Now
+            };
+
+            // Nếu người dùng chọn địa chỉ này là mặc định, phải bỏ mặc định các cái cũ
+            if (newAddress.IsDefault == true)
+            {
+                var currentDefault = await _context.DiaChis
+                    .FirstOrDefaultAsync(a => a.TaiKhoanId == userId && a.IsDefault == true);
+                if (currentDefault != null) currentDefault.IsDefault = false;
+            }
+
+            _context.DiaChis.Add(newAddress);
+            await _context.SaveChangesAsync();
+        }
+
+        // Xóa địa chỉ
+        public async Task<bool> DeleteAddressAsync(int userId, int addressId)
+        {
+            var address = await _context.DiaChis
+                .FirstOrDefaultAsync(a => a.DiaChiId == addressId && a.TaiKhoanId == userId);
+
+            if (address == null) return false;
+
+            _context.DiaChis.Remove(address);
+
+            // Logic nâng cao: Nếu xóa địa chỉ mặc định, hãy đặt một địa chỉ khác làm mặc định
+            if (address.IsDefault == true)
+            {
+                await _context.SaveChangesAsync(); // Xóa trước
+                var nextAddress = await _context.DiaChis
+                    .FirstOrDefaultAsync(a => a.TaiKhoanId == userId);
+                if (nextAddress != null) nextAddress.IsDefault = true;
+            }
+
+            await _context.SaveChangesAsync();
+            return true;
+        }
     }
 }
