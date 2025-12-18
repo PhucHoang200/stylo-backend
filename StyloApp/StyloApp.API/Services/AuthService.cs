@@ -1,10 +1,14 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
+using Microsoft.IdentityModel.Tokens;
 using StyloApp.API.Core.Exceptions;
 using StyloApp.API.Data;
 using StyloApp.API.DTOs;
 using StyloApp.API.Entities;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using System.Text;
 
 namespace StyloApp.API.Services
 {
@@ -14,6 +18,8 @@ namespace StyloApp.API.Services
         private readonly IMemoryCache _cache;
         private readonly EmailService _emailService;
         private readonly PasswordHasher<TaiKhoan> _hasher = new();
+        // Khai báo lại key giống hệt bên Program.cs
+        private readonly string _jwtSecret = "Day_La_Chuoi_Bi_Mat_Sieu_Cap_Vip_Pro_Cua_Stylo_App_Nam_2025_Ngon_Lanh_Canh_Dao";
 
         public AuthService(
             FashionShopContext context,
@@ -106,6 +112,7 @@ namespace StyloApp.API.Services
             _cache.Set($"OTP_{email}", otp, TimeSpan.FromMinutes(5));
             await _emailService.SendOtpAsync(email, otp);
         }
+
         public async Task<LoginResponseDto> LoginAsync(LoginDto dto)
         {
             var taiKhoan = await _context.TaiKhoans
@@ -127,11 +134,14 @@ namespace StyloApp.API.Services
             if (result == PasswordVerificationResult.Failed)
                 throw new Exception("Invalid password");
 
+            var token = GenerateJwtToken(taiKhoan);
+
             return new LoginResponseDto
             {
                 TaiKhoanId = taiKhoan.TaiKhoanId,
                 Email = taiKhoan.TenDangNhap,
-                Role = taiKhoan.Role?.Name ?? "Customer"
+                Role = taiKhoan.Role?.Name ?? "Customer",
+                Token = token
             };
         }
         public async Task ForgotPasswordAsync(string email)
@@ -180,6 +190,33 @@ namespace StyloApp.API.Services
             taiKhoan.UpdatedAt = DateTime.UtcNow;
 
             await _context.SaveChangesAsync();
+        }
+        private string GenerateJwtToken(TaiKhoan taiKhoan)
+        {
+            var claims = new List<Claim>
+            {
+                new Claim(ClaimTypes.NameIdentifier, taiKhoan.TaiKhoanId.ToString()),
+                new Claim(ClaimTypes.Email, taiKhoan.TenDangNhap ?? ""),
+                new Claim(ClaimTypes.Role, taiKhoan.Role?.Name ?? "Customer")
+            };
+
+            // Sử dụng cùng chuỗi bí mật
+            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwtSecret));
+
+            // Đảm bảo thuật toán ký trùng khớp (HmacSha512 hoặc HmacSha256 đều được nhưng phải thống nhất)
+            var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha512Signature);
+
+            var tokenDescriptor = new SecurityTokenDescriptor
+            {
+                Subject = new ClaimsIdentity(claims),
+                Expires = DateTime.Now.AddDays(7),
+                SigningCredentials = creds
+            };
+
+            var tokenHandler = new JwtSecurityTokenHandler();
+            var token = tokenHandler.CreateToken(tokenDescriptor);
+
+            return tokenHandler.WriteToken(token);
         }
 
 

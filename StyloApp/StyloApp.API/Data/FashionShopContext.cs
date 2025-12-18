@@ -54,9 +54,11 @@ public partial class FashionShopContext : DbContext
 
     public virtual DbSet<VanDon> VanDons { get; set; }
 
+    public virtual DbSet<DiaChi> DiaChis { get; set; }
+
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
 #warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see https://go.microsoft.com/fwlink/?LinkId=723263.
-        => optionsBuilder.UseSqlServer("Server=DESKTOP-DE6G2CH\\SQLEXPRESS;Database=fashion_shop;Trusted_Connection=True;TrustServerCertificate=True;");
+        => optionsBuilder.UseSqlServer("Server=DESKTOP-DE6G2CH\\SQLEXPRESS;Database=fashion_shop1;Trusted_Connection=True;TrustServerCertificate=True;");
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -512,6 +514,41 @@ public partial class FashionShopContext : DbContext
                 .HasForeignKey(d => d.DonHangId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("fk_vd_dh");
+        });
+
+        modelBuilder.Entity<DiaChi>(entity =>
+        {
+            entity.HasKey(e => e.DiaChiId).HasName("PK__DiaChi__PK"); // Tên PK tùy chọn
+
+            entity.ToTable("DiaChi");
+
+            entity.Property(e => e.DiaChiId).HasColumnName("DiaChiID");
+            entity.Property(e => e.TaiKhoanId).HasColumnName("TaiKhoanID");
+
+            entity.Property(e => e.DiaChiChiTiet)
+                .HasMaxLength(255);
+
+            entity.Property(e => e.LoaiDiaChi)
+                .HasMaxLength(20)
+                .HasDefaultValue("Home");
+
+            entity.Property(e => e.IsDefault)
+                .HasDefaultValue(false);
+
+            entity.Property(e => e.CreatedAt)
+                .HasColumnType("datetime")
+                .HasDefaultValueSql("(getdate())");
+
+            entity.Property(e => e.UpdatedAt)
+                .HasColumnType("datetime")
+                .HasDefaultValueSql("(getdate())");
+
+            // Thiết lập mối quan hệ ngoại với TaiKhoan
+            entity.HasOne(d => d.TaiKhoan)
+                .WithMany(p => p.DiaChis)
+                .HasForeignKey(d => d.TaiKhoanId)
+                .OnDelete(DeleteBehavior.Cascade) // Xóa tài khoản thì xóa luôn địa chỉ
+                .HasConstraintName("FK_DiaChi_TaiKhoan");
         });
 
         OnModelCreatingPartial(modelBuilder);
