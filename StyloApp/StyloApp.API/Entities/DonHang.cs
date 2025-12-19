@@ -9,7 +9,7 @@ public partial class DonHang
 
     public int KhachHangId { get; set; }
 
-    public string TrangThai { get; set; } = null!;
+    public string? TrangThai { get; set; } = null!;
 
     public string KenhBan { get; set; } = null!;
 

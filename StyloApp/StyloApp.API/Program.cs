@@ -65,6 +65,7 @@ builder.Services.AddScoped<AuthService>();
 builder.Services.AddScoped<EmailService>();
 builder.Services.AddScoped<AccountService>();
 builder.Services.AddScoped<ProductService>();
+builder.Services.AddScoped<OrderService>();
 // --- 4. CẤU HÌNH AUTHENTICATION (Xác thực JWT) ---
 builder.Services.AddAuthentication(options => {
     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
