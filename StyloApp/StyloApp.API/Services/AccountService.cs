@@ -2,12 +2,14 @@
 using StyloApp.API.DTOs;
 using Microsoft.EntityFrameworkCore;
 using StyloApp.API.Entities;
+using Microsoft.AspNetCore.Identity;
 
 namespace StyloApp.API.Services
 {
     public class AccountService
     {
         private readonly FashionShopContext _context;
+        private readonly PasswordHasher<TaiKhoan> _hasher = new();
 
         public AccountService(FashionShopContext context) => _context = context;
 
@@ -123,6 +125,35 @@ namespace StyloApp.API.Services
 
             await _context.SaveChangesAsync();
             return true;
+        }
+        public async Task ChangePasswordAsync(int userId, ChangePasswordDto dto)
+        {
+            var taiKhoan = await _context.TaiKhoans.FindAsync(userId);
+            if (taiKhoan == null) throw new Exception("Tài khoản không tồn tại");
+
+            // 1. Kiểm tra mật khẩu cũ
+            var result = _hasher.VerifyHashedPassword(taiKhoan, taiKhoan.MatKhauHash, dto.OldPassword);
+            if (result == PasswordVerificationResult.Failed)
+                throw new Exception("Mật khẩu cũ không chính xác");
+
+            // 2. Hash mật khẩu mới và cập nhật
+            taiKhoan.MatKhauHash = _hasher.HashPassword(taiKhoan, dto.NewPassword);
+            taiKhoan.UpdatedAt = DateTime.UtcNow;
+
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task DeleteAccountAsync(int userId)
+        {
+            var taiKhoan = await _context.TaiKhoans.FindAsync(userId);
+            if (taiKhoan == null) throw new Exception("Tài khoản không tồn tại");
+
+            // Lưu ý: Nếu có bảng KhachHang liên kết, bạn cần xóa KhachHang trước hoặc dùng Cascade Delete
+            var khachHang = await _context.KhachHangs.FirstOrDefaultAsync(x => x.TaiKhoanId == userId);
+            if (khachHang != null) _context.KhachHangs.Remove(khachHang);
+
+            _context.TaiKhoans.Remove(taiKhoan);
+            await _context.SaveChangesAsync();
         }
     }
 }
