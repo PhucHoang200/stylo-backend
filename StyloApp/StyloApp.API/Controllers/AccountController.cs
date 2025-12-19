@@ -82,7 +82,26 @@ namespace StyloApp.API.Controllers
 
         }
 
+        [Authorize]
+        [HttpGet("purchase-history")]
+        public async Task<IActionResult> GetPurchaseHistory()
+        {
+            try
+            {
+                // Lấy TaiKhoanID từ JWT Token
+                var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                if (string.IsNullOrEmpty(userIdClaim)) return Unauthorized();
 
+                var userId = int.Parse(userIdClaim);
+                var history = await _accountService.GetPurchaseHistoryAsync(userId);
+
+                return Ok(history);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = "Không thể lấy lịch sử mua hàng", error = ex.Message });
+            }
+        }
 
     }
 }

@@ -155,5 +155,46 @@ namespace StyloApp.API.Services
             _context.TaiKhoans.Remove(taiKhoan);
             await _context.SaveChangesAsync();
         }
+        public async Task<List<OrderHistoryDto>> GetPurchaseHistoryAsync(int userId)
+        {
+            // 1. Tìm KhachHangID dựa trên TaiKhoanID từ Token
+            var khachHang = await _context.KhachHangs
+                .FirstOrDefaultAsync(k => k.TaiKhoanId == userId);
+
+            if (khachHang == null) return new List<OrderHistoryDto>();
+
+            // 2. Truy vấn lịch sử đơn hàng
+            var orders = await _context.DonHangs
+                .Where(d => d.KhachHangId == khachHang.KhachHangId)
+                .OrderByDescending(d => d.NgayDat) // Đơn mới nhất lên đầu
+                .Select(d => new OrderHistoryDto
+                {
+                    DonHangId = d.DonHangId,
+                    TrangThai = d.TrangThai,
+                    TongThanhToan = d.TongThanhToan,
+                    NgayDat = d.NgayDat,
+                    // Lấy mã vận đơn từ bảng VanDon (nếu có)
+                    MaVanDon = _context.VanDons
+                        .Where(v => v.DonHangId == d.DonHangId)
+                        .Select(v => v.MaVanDon)
+                        .FirstOrDefault(),
+                    TrangThaiGiao = _context.VanDons
+                        .Where(v => v.DonHangId == d.DonHangId)
+                        .Select(v => v.TrangThaiGiao)
+                        .FirstOrDefault(),
+                    // Lấy chi tiết sản phẩm
+                    ChiTietItems = _context.DonHangChiTiets
+                        .Where(ct => ct.DonHangId == d.DonHangId)
+                        .Select(ct => new OrderDetailDto
+                        {
+                            BienTheId = ct.BienTheId,
+                            SoLuong = ct.SoLuong,
+                            DonGia = ct.DonGia
+                        }).ToList()
+                })
+                .ToListAsync();
+
+            return orders;
+        }
     }
 }
