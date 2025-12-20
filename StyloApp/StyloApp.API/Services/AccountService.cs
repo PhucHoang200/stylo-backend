@@ -1,8 +1,8 @@
-﻿using StyloApp.API.Data;
-using StyloApp.API.DTOs;
+﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using StyloApp.API.Data;
+using StyloApp.API.DTOs;
 using StyloApp.API.Entities;
-using Microsoft.AspNetCore.Identity;
 
 namespace StyloApp.API.Services
 {
