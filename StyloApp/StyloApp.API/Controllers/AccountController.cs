@@ -69,9 +69,18 @@ namespace StyloApp.API.Controllers
         [HttpPost("change-password")]
         public async Task<IActionResult> ChangePassword(ChangePasswordDto dto)
         {
-            int userId = User.GetUserId();
-            await _accountService.ChangePasswordAsync(GetUserId(), dto);
-            return Ok(new { message = "Đổi mật khẩu thành công" });
+            try
+            {
+                int userId = User.GetUserId();
+                await _accountService.ChangePasswordAsync(GetUserId(), dto);
+                return Ok(new { message = "Đổi mật khẩu thành công" });
+            }
+            catch (Exception ex)
+            {
+                // Trả về lỗi 400 kèm thông báo cụ thể
+                return BadRequest(new { message = ex.Message });
+            }
+
         }
         [HttpDelete("delete-account")]
         public async Task<IActionResult> DeleteAccount()
