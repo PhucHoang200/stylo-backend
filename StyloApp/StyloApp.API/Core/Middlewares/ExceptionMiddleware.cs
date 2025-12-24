@@ -41,6 +41,12 @@ namespace StyloApp.API.Core.Middlewares
             // Kiểm tra các Exception tùy chỉnh
             switch (exception)
             {
+                // THÊM TRƯỜNG HỢP NÀY: Bắt lỗi nghiệp vụ (sai mật khẩu, dữ liệu không hợp lệ)
+                case ApplicationException appException:
+                    context.Response.StatusCode = (int)HttpStatusCode.BadRequest; // 400
+                    errorDetails.StatusCode = 400;
+                    errorDetails.Message = appException.Message;
+                    break;
                 case ConflictException conflictException:
                     context.Response.StatusCode = (int)HttpStatusCode.Conflict; // 409
                     errorDetails.StatusCode = 409;
@@ -59,6 +65,7 @@ namespace StyloApp.API.Core.Middlewares
                     break;
             }
 
+            var options = new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
             var result = JsonSerializer.Serialize(errorDetails);
             return context.Response.WriteAsync(result);
         }
