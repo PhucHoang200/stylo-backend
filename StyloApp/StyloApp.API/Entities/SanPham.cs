@@ -29,5 +29,7 @@ public partial class SanPham
 
     public virtual ThuongHieu? ThuongHieu { get; set; }
 
+    public virtual DanhMuc DanhMuc { get; set; }
+
     public virtual ICollection<UserProductInteraction> UserProductInteractions { get; set; } = new List<UserProductInteraction>();
 }
