@@ -85,5 +85,19 @@ namespace StyloApp.API.Controllers
 
             return Ok(recommendations);
         }
+
+        [HttpGet("search")]
+        public async Task<IActionResult> Search([FromQuery] ProductSearchDto dto)
+        {
+            var result = await _productService.SearchAsync(dto);
+
+            return Ok(new
+            {
+                total = result.Total,
+                page = dto.Page,
+                pageSize = dto.PageSize,
+                items = result.Items
+            });
+        }
     }
 }

@@ -271,86 +271,63 @@ namespace StyloApp.API.Services
                 .ToListAsync();
         }
 
-        //public async Task<int> ProcessCheckoutAsync(CheckoutRequestDto request)
-        //{
-        //    // Sử dụng Transaction để đảm bảo an toàn dữ liệu
-        //    using var transaction = await _context.Database.BeginTransactionAsync();
+        public async Task<(List<SanPhamBienTheHomeDto> Items, int Total)> SearchAsync(ProductSearchDto dto)
+        {
+            var query = _context.SanPhams
+                .AsNoTracking()
+                .Include(sp => sp.DanhMuc)
+                .AsQueryable();
 
-        //    try
-        //    {
-        //        // 1. Tính toán tổng tiền
-        //        decimal tongTienHang = request.Items.Sum(x => x.SoLuong * x.DonGia);
-        //        decimal tongThanhToan = tongTienHang + request.PhiVanChuyen;
+            // SEARCH THEO TÊN SP + TÊN DANH MỤC
+            if (!string.IsNullOrWhiteSpace(dto.Keyword))
+            {
+                string keyword = dto.Keyword.Trim().ToLower();
 
-        //        // 2. Tạo đối tượng Đơn hàng (DonHang)
-        //        var donHang = new DonHang
-        //        {
-        //            KhachHangId = request.KhachHangId,
-        //            TrangThai = "ChoXacNhan",
-        //            KenhBan = request.KenhBan,
-        //            TongTienHang = tongTienHang,
-        //            TongGiamGia = 0,
-        //            Thue = 0,
-        //            PhiVanChuyen = request.PhiVanChuyen,
-        //            TongThanhToan = tongThanhToan,
-        //            NgayDat = DateTime.Now,
-        //            UpdatedAt = DateTime.Now
-        //        };
+                query = query.Where(sp =>
+                    sp.TenSanPham.ToLower().Contains(keyword) ||
+                    (sp.DanhMuc != null && sp.DanhMuc.Ten.ToLower().Contains(keyword))
+                );
+            }
 
-        //        _context.DonHangs.Add(donHang);
-        //        await _context.SaveChangesAsync(); // Lưu để lấy DonHangID
+            int total = await query.CountAsync();
 
-        //        // 3. Duyệt qua từng sản phẩm để lưu chi tiết và trừ kho
-        //        foreach (var item in request.Items)
-        //        {
-        //            // 3a. Thêm vào bảng Chi tiết đơn hàng
-        //            var chiTiet = new DonHangChiTiet
-        //            {
-        //                DonHangId = donHang.DonHangId,
-        //                BienTheId = item.BienTheId,
-        //                SoLuong = item.SoLuong,
-        //                DonGia = item.DonGia,
-        //                GiamGia = 0,
-        //                Thue = 0
-        //            };
-        //            _context.DonHangChiTiets.Add(chiTiet);
+            var items = await query
+                .OrderByDescending(sp => sp.SanPhamId)
+                .Skip((dto.Page - 1) * dto.PageSize)
+                .Take(dto.PageSize)
+                .Select(sp => new SanPhamBienTheHomeDto
+                {
+                    SanPhamId = sp.SanPhamId,
+                    TenSanPham = sp.TenSanPham,
+                    DanhMucId = sp.DanhMucId,
 
-        //            // 3b. TRỪ TỒN KHO (Quan trọng nhất)
-        //            var tonKho = await _context.TonKhos
-        //                .FirstOrDefaultAsync(tk => tk.BienTheId == item.BienTheId);
+                    // GIÁ THẤP NHẤT
+                    GiaBan = sp.SanPhamBienThes.Any()
+                        ? sp.SanPhamBienThes.Min(bt => bt.GiaBan)
+                        : 0,
 
-        //            if (tonKho == null || (tonKho.OnHand - tonKho.Reserved) < item.SoLuong)
-        //            {
-        //                throw new Exception($"Sản phẩm ID {item.BienTheId} không đủ tồn kho.");
-        //            }
+                    // BIẾN THỂ ĐẠI DIỆN
+                    BienTheId = sp.SanPhamBienThes
+                        .OrderBy(bt => bt.GiaBan)
+                        .Select(bt => bt.BienTheId)
+                        .FirstOrDefault(),
 
-        //            // Trừ số lượng thực tế trong kho
-        //            tonKho.OnHand -= item.SoLuong;
-        //            tonKho.UpdatedAt = DateTime.Now;
-        //        }
+                    Sku = sp.SanPhamBienThes
+                        .OrderBy(bt => bt.GiaBan)
+                        .Select(bt => bt.Sku)
+                        .FirstOrDefault(),
 
-        //        // 4. Tự động tạo một Vận đơn (VanDon) ở trạng thái chờ
-        //        var vanDon = new VanDon
-        //        {
-        //            DonHangId = donHang.DonHangId,
-        //            TrangThaiGiao = "ChuaGiao",
-        //            PhiVanChuyen = request.PhiVanChuyen
-        //        };
-        //        _context.VanDons.Add(vanDon);
+                    // ẢNH ĐẠI DIỆN
+                    ImageUrl = sp.AnhSanPhams
+                        .OrderByDescending(a => a.IsPrimary)
+                        .Select(a => a.Url)
+                        .FirstOrDefault() ?? "default-product.jpg"
+                })
+                .ToListAsync();
 
-        //        await _context.SaveChangesAsync();
+            return (items, total);
+        }
 
-        //        // Hoàn tất giao dịch
-        //        await transaction.CommitAsync();
 
-        //        return donHang.DonHangId;
-        //    }
-        //    catch (Exception)
-        //    {
-        //        // Nếu có bất kỳ lỗi nào, hủy bỏ toàn bộ thay đổi trong DB
-        //        await transaction.RollbackAsync();
-        //        throw;
-        //    }
-        //}
     }
 }
