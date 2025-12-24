@@ -328,6 +328,83 @@ namespace StyloApp.API.Services
             return (items, total);
         }
 
+        public async Task<IEnumerable<SanPhamBienTheHomeDto>> SearchByImageAsync(IFormFile file, int k = 10)
+        {
+            var client = _httpClientFactory.CreateClient();
+            var fastApiUrl = $"http://127.0.0.1:8000/search-by-image?k={k}";
 
+            using var form = new MultipartFormDataContent();
+
+            using var stream = file.OpenReadStream();
+            var fileContent = new StreamContent(stream);
+            fileContent.Headers.ContentType =
+                new System.Net.Http.Headers.MediaTypeHeaderValue(file.ContentType);
+
+            form.Add(fileContent, "file", file.FileName);
+
+            var response = await client.PostAsync(fastApiUrl, form);
+            if (!response.IsSuccessStatusCode)
+                return new List<SanPhamBienTheHomeDto>();
+
+            var json = await response.Content.ReadAsStringAsync();
+
+            using var doc = JsonDocument.Parse(json);
+
+            // FastAPI trả SanPhamID
+            var productIds = doc.RootElement
+                .GetProperty("products")
+                .EnumerateArray()
+                .Select(p => p.GetProperty("SanPhamID").GetInt32())
+                .ToList();
+
+            if (!productIds.Any())
+                return new List<SanPhamBienTheHomeDto>();
+
+            // LẤY DATA GIỐNG HỆT RECOMMEND
+            return await GetProductInfoByIdsAsync(productIds);
+        }
+
+        public async Task<IEnumerable<SanPhamBienTheHomeDto>> SearchByKeywordAsync(string keyword)
+        {
+            if (string.IsNullOrWhiteSpace(keyword))
+                return new List<SanPhamBienTheHomeDto>();
+
+            keyword = keyword.Trim().ToLower();
+
+            return await _context.SanPhams
+                .AsNoTracking()
+                .Where(sp =>
+                    sp.TenSanPham.ToLower().Contains(keyword) ||
+                    (sp.MoTa != null && sp.MoTa.ToLower().Contains(keyword))
+                )
+                .OrderByDescending(sp => sp.SanPhamId)
+                .Take(50)
+                .Select(sp => new SanPhamBienTheHomeDto
+                {
+                    SanPhamId = sp.SanPhamId,
+                    TenSanPham = sp.TenSanPham,
+                    DanhMucId = sp.DanhMucId,
+
+                    GiaBan = sp.SanPhamBienThes.Any()
+                        ? sp.SanPhamBienThes.Min(bt => bt.GiaBan)
+                        : 0,
+
+                    BienTheId = sp.SanPhamBienThes
+                        .OrderBy(bt => bt.GiaBan)
+                        .Select(bt => bt.BienTheId)
+                        .FirstOrDefault(),
+
+                    Sku = sp.SanPhamBienThes
+                        .OrderBy(bt => bt.GiaBan)
+                        .Select(bt => bt.Sku)
+                        .FirstOrDefault(),
+
+                    ImageUrl = sp.AnhSanPhams
+                        .OrderByDescending(a => a.IsPrimary)
+                        .Select(a => a.Url)
+                        .FirstOrDefault() ?? "/images/default-product.jpg"
+                })
+                .ToListAsync();
+        }
     }
 }
