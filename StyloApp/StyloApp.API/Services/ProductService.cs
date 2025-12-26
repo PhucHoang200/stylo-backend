@@ -69,12 +69,12 @@ namespace StyloApp.API.Services
                 .Select(sp => new SanPhamBienTheHomeDto
                 {
                     SanPhamId = sp.SanPhamId,
-                    TenSanPham = sp.TenSanPham,
+                    TenSanPham = sp.TenSanPham.Replace(",", "").Replace(".", "").Trim(),
                     DanhMucId = sp.DanhMucId,
 
                     // LẤY GIÁ BÁN THẤP NHẤT TỪ BẢNG BIẾN THỂ
                     GiaBan = sp.SanPhamBienThes.Any()
-                             ? sp.SanPhamBienThes.Min(bt => bt.GiaBan)
+                             ? sp.SanPhamBienThes.Max(bt => bt.GiaBan)
                              : 0,
 
                     // LẤY BIENTHEID CỦA THẰNG CÓ GIÁ THẤP NHẤT ĐÓ
@@ -104,7 +104,7 @@ namespace StyloApp.API.Services
                 .Select(sp => new ProductDetailDto
                 {
                     SanPhamId = sp.SanPhamId,
-                    Name = sp.TenSanPham,
+                    Name = sp.TenSanPham.Replace(",", "").Replace(".", "").Trim(),
                     Description = sp.MoTa ?? "",
                     // Giá thấp nhất để hiển thị ban đầu
                     BasePrice = sp.SanPhamBienThes.Min(bt => bt.GiaBan),
