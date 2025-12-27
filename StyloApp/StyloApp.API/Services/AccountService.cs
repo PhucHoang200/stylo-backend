@@ -129,12 +129,12 @@ namespace StyloApp.API.Services
         public async Task ChangePasswordAsync(int userId, ChangePasswordDto dto)
         {
             var taiKhoan = await _context.TaiKhoans.FindAsync(userId);
-            if (taiKhoan == null) throw new Exception("Tài khoản không tồn tại");
+            if (taiKhoan == null) throw new ApplicationException("Tài khoản không tồn tại");
 
             // 1. Kiểm tra mật khẩu cũ
             var result = _hasher.VerifyHashedPassword(taiKhoan, taiKhoan.MatKhauHash, dto.OldPassword);
             if (result == PasswordVerificationResult.Failed)
-                throw new Exception("Mật khẩu cũ không chính xác");
+                throw new ApplicationException("Mật khẩu cũ không chính xác");
 
             // 2. Hash mật khẩu mới và cập nhật
             taiKhoan.MatKhauHash = _hasher.HashPassword(taiKhoan, dto.NewPassword);
