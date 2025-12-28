@@ -160,27 +160,34 @@ public partial class FashionShopContext : DbContext
 
         modelBuilder.Entity<DonHangChiTiet>(entity =>
         {
+            // 1. Khai báo khóa chính tổ hợp (Composite Key)
             entity.HasKey(e => new { e.DonHangId, e.BienTheId }).HasName("pk_dhct");
 
             entity.ToTable("DonHang_ChiTiet");
 
+            // 2. Map tên cột chính xác với Database (viết hoa ID)
             entity.Property(e => e.DonHangId).HasColumnName("DonHangID");
             entity.Property(e => e.BienTheId).HasColumnName("BienTheID");
+
             entity.Property(e => e.DonGia).HasColumnType("decimal(12, 2)");
             entity.Property(e => e.GiamGia).HasColumnType("decimal(12, 2)");
             entity.Property(e => e.Thue).HasColumnType("decimal(12, 2)");
 
-            entity.HasOne(d => d.BienThe).WithMany(p => p.DonHangChiTiets)
+            // 3. Cấu hình quan hệ với bảng Biến Thể - CHỈ GIỮ LẠI MỘT CÁI
+            entity.HasOne(d => d.BienThe)
+                .WithMany(p => p.DonHangChiTiets)
                 .HasForeignKey(d => d.BienTheId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("fk_dhct_bt");
 
-            entity.HasOne(d => d.DonHang).WithMany(p => p.DonHangChiTiets)
+            // 4. Cấu hình quan hệ với bảng Đơn Hàng
+            entity.HasOne(d => d.DonHang)
+                .WithMany(p => p.DonHangChiTiets)
                 .HasForeignKey(d => d.DonHangId)
+                .OnDelete(DeleteBehavior.Cascade) // Thường đơn hàng xóa thì chi tiết xóa theo
                 .HasConstraintName("fk_dhct_dh");
-            entity.HasOne(d => d.SanPhamBienThe)
-                .WithMany()
-                .HasForeignKey(d => d.BienTheId);
+
+            // TRIỆT TIÊU: Xóa bỏ hoàn toàn đoạn .HasOne(d => d.BienThe).WithMany() ở cuối
         });
 
         modelBuilder.Entity<KhachHang>(entity =>

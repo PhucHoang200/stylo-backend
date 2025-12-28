@@ -134,11 +134,15 @@ namespace StyloApp.API.Services
             if (result == PasswordVerificationResult.Failed)
                 throw new Exception("Invalid password");
 
+            var khachHang = await _context.KhachHangs
+                .FirstOrDefaultAsync(k => k.TaiKhoanId == taiKhoan.TaiKhoanId);
+
             var token = GenerateJwtToken(taiKhoan);
 
             return new LoginResponseDto
             {
                 TaiKhoanId = taiKhoan.TaiKhoanId,
+                KhachHangId = khachHang?.KhachHangId,
                 Email = taiKhoan.TenDangNhap,
                 Role = taiKhoan.Role?.Name ?? "Customer",
                 Token = token

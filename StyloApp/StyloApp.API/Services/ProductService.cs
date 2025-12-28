@@ -74,7 +74,7 @@ namespace StyloApp.API.Services
 
                     // LẤY GIÁ BÁN THẤP NHẤT TỪ BẢNG BIẾN THỂ
                     GiaBan = sp.SanPhamBienThes.Any()
-                             ? sp.SanPhamBienThes.Max(bt => bt.GiaBan)
+                             ? sp.SanPhamBienThes.Min(bt => bt.GiaBan)
                              : 0,
 
                     // LẤY BIENTHEID CỦA THẰNG CÓ GIÁ THẤP NHẤT ĐÓ
@@ -132,15 +132,30 @@ namespace StyloApp.API.Services
                 .FirstOrDefaultAsync();
         }
 
-        public async Task<decimal?> GetPriceByVariantAsync(int sanPhamId, int mauId, int sizeId)
+        public async Task<VariantPriceDto?> GetVariantInfoAsync(int sanPhamId, int mauId, int sizeId)
         {
-            // API này dùng khi người dùng đã chọn đủ cả Màu và Size
+            // Dùng đúng tên cột trong DB của bạn là BienTheID và GiaBan
             return await _context.SanPhamBienThes
                 .AsNoTracking()
                 .Where(bt => bt.SanPhamId == sanPhamId && bt.MauId == mauId && bt.SizeId == sizeId)
-                .Select(bt => bt.GiaBan)
+                .Select(bt => new VariantPriceDto
+                {
+                    BienTheId = bt.BienTheId,
+                    GiaBan = bt.GiaBan
+                })
                 .FirstOrDefaultAsync();
         }
+
+        //public async Task<decimal?> GetPriceByVariantAsync(int sanPhamId, int mauId, int sizeId)
+        //{
+        //    // API này dùng khi người dùng đã chọn đủ cả Màu và Size
+        //    return await _context.SanPhamBienThes
+        //        .AsNoTracking()
+        //        .Where(bt => bt.SanPhamId == sanPhamId && bt.MauId == mauId && bt.SizeId == sizeId)
+        //        .Select(bt => bt.GiaBan)
+        //        .FirstOrDefaultAsync();
+        //}
+
 
         // 1. Lấy toàn bộ Phân loại
         public async Task<IEnumerable<PhanLoaiDto>> GetAllPhanLoaiAsync()

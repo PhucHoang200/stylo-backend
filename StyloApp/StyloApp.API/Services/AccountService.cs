@@ -188,21 +188,21 @@ namespace StyloApp.API.Services
                         DonGia = ct.DonGia,
 
                         // TenSanPham: DonHang_ChiTiet -> SanPham_BienThe -> SanPham
-                        TenSanPham = ct.SanPhamBienThe.SanPham.TenSanPham.Replace(",", "").Replace(".", "").Trim(),
+                        TenSanPham = ct.BienThe.SanPham.TenSanPham.Replace(",", "").Replace(".", "").Trim(),
 
                         // Size: SanPham_BienThe -> Size
-                        Size = ct.SanPhamBienThe.Size.KyHieu,
+                        Size = ct.BienThe.Size.KyHieu,
 
                         // MauSac: SanPham_BienThe -> MauSac
                         MauSac = new MauSacDto
                         {
-                            Id = ct.SanPhamBienThe.Mau.MauId,
-                            Ten = ct.SanPhamBienThe.Mau.Ten,
-                            MaHex = ct.SanPhamBienThe.Mau.MaHex ?? ""
+                            Id = ct.BienThe.Mau.MauId,
+                            Ten = ct.BienThe.Mau.Ten,
+                            MaHex = ct.BienThe.Mau.MaHex ?? ""
                         },
 
                         // ImageUrl: Lấy từ bảng AnhSanPham liên kết với SanPhamID
-                        ImageUrl = ct.SanPhamBienThe.SanPham.AnhSanPhams
+                        ImageUrl = ct.BienThe.SanPham.AnhSanPhams
                             .OrderByDescending(a => a.IsPrimary)
                             .Select(a => a.Url)
                             .FirstOrDefault() ?? "default-product.jpg"

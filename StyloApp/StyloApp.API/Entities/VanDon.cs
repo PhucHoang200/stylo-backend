@@ -13,9 +13,9 @@ public partial class VanDon
 
     public string? MaVanDon { get; set; }
 
-    public string TrangThaiGiao { get; set; } = null!;
+    public string? TrangThaiGiao { get; set; } = null!;
 
-    public decimal PhiVanChuyen { get; set; }
+    public decimal? PhiVanChuyen { get; set; }
 
     public DateOnly? NgayGui { get; set; }
 
