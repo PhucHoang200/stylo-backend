@@ -3,6 +3,8 @@
     public class OrderDetailDto
     {
         public int BienTheId { get; set; }
+        public int SanPhamId { get; set; }
+        public int SizeId { get; set; }
         public string TenSanPham { get; set; }
         public string ImageUrl { get; set; }
         public string Size { get; set; }

@@ -22,16 +22,16 @@ namespace StyloApp.API.Controllers
             }
             catch (Exception ex)
             {
-                // Lấy lỗi sâu nhất (InnerException)
+                // Lấy lỗi chi tiết (ví dụ: "Sản phẩm A hiện chỉ còn 2 món...")
                 var realError = ex.InnerException != null ? ex.InnerException.Message : ex.Message;
 
-                // Log lỗi này ra Console để bạn đọc được trong Visual Studio
-                Console.WriteLine($"FULL ERROR: {realError}");
+                Console.WriteLine($"ORDER ERROR: {realError}");
 
                 return BadRequest(new
                 {
-                    Message = "Lỗi lưu Database",
-                    Detail = realError // Trả về chi tiết lỗi để kiểm tra
+                    // Gán lỗi thật vào Message để Flutter hiển thị lên UI
+                    Message = realError,
+                    Type = "ORDER_ERROR" // Thêm loại lỗi nếu bạn muốn xử lý logic khác nhau ở UI
                 });
             }
         }
