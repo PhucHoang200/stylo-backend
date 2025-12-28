@@ -2,7 +2,7 @@
 {
     public class OrderHistoryDto
     {
-        public int DonHangId { get; set; }
+        public string DonHangId { get; set; }
         public string TrangThai { get; set; }
         public decimal TongThanhToan { get; set; }
         public DateTime NgayDat { get; set; }

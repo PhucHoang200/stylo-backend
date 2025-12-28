@@ -178,6 +178,9 @@ public partial class FashionShopContext : DbContext
             entity.HasOne(d => d.DonHang).WithMany(p => p.DonHangChiTiets)
                 .HasForeignKey(d => d.DonHangId)
                 .HasConstraintName("fk_dhct_dh");
+            entity.HasOne(d => d.SanPhamBienThe)
+                .WithMany()
+                .HasForeignKey(d => d.BienTheId);
         });
 
         modelBuilder.Entity<KhachHang>(entity =>
