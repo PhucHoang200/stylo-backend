@@ -69,16 +69,30 @@ namespace StyloApp.API.Controllers
         [HttpPost("change-password")]
         public async Task<IActionResult> ChangePassword(ChangePasswordDto dto)
         {
+            try
+            {
                 int userId = User.GetUserId();
                 await _accountService.ChangePasswordAsync(GetUserId(), dto);
                 return Ok(new { message = "Đổi mật khẩu thành công" });
+            }
+            catch (ApplicationException ex)
+            {
+                return BadRequest(new { message = "Không thể đổi mật khẩu", error = ex.Message });
+            }
         }
         [HttpDelete("delete-account")]
         public async Task<IActionResult> DeleteAccount()
         {
-            int userId = User.GetUserId();
-            await _accountService.DeleteAccountAsync(GetUserId());
-            return Ok(new { message = "Xóa tài khoản thành công" });
+            try
+            {
+                int userId = User.GetUserId();
+                await _accountService.DeleteAccountAsync(GetUserId());
+                return Ok(new { message = "Xóa tài khoản thành công" });
+            }
+            catch (ApplicationException ex) {
+                // Trả về 400 và bọc tin nhắn vào một đối tượng JSON có key là 'message'
+                return BadRequest(new { message = ex.Message });
+            }
         }
 
         [Authorize]

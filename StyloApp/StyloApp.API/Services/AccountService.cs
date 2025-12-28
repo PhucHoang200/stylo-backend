@@ -129,12 +129,12 @@ namespace StyloApp.API.Services
         public async Task ChangePasswordAsync(int userId, ChangePasswordDto dto)
         {
             var taiKhoan = await _context.TaiKhoans.FindAsync(userId);
-            if (taiKhoan == null) throw new Exception("Tài khoản không tồn tại");
+            if (taiKhoan == null) throw new ApplicationException("Tài khoản không tồn tại");
 
             // 1. Kiểm tra mật khẩu cũ
             var result = _hasher.VerifyHashedPassword(taiKhoan, taiKhoan.MatKhauHash, dto.OldPassword);
             if (result == PasswordVerificationResult.Failed)
-                throw new Exception("Mật khẩu cũ không chính xác");
+                throw new ApplicationException("Mật khẩu cũ không chính xác");
 
             // 2. Hash mật khẩu mới và cập nhật
             taiKhoan.MatKhauHash = _hasher.HashPassword(taiKhoan, dto.NewPassword);
@@ -155,46 +155,120 @@ namespace StyloApp.API.Services
             _context.TaiKhoans.Remove(taiKhoan);
             await _context.SaveChangesAsync();
         }
+
         public async Task<List<OrderHistoryDto>> GetPurchaseHistoryAsync(int userId)
         {
-            // 1. Tìm KhachHangID dựa trên TaiKhoanID từ Token
+            // 1. Tìm Khách hàng từ Tài khoản ID
             var khachHang = await _context.KhachHangs
+                .AsNoTracking()
                 .FirstOrDefaultAsync(k => k.TaiKhoanId == userId);
 
             if (khachHang == null) return new List<OrderHistoryDto>();
 
-            // 2. Truy vấn lịch sử đơn hàng
+            // 2. Query dữ liệu
             var orders = await _context.DonHangs
+                .AsNoTracking()
                 .Where(d => d.KhachHangId == khachHang.KhachHangId)
-                .OrderByDescending(d => d.NgayDat) // Đơn mới nhất lên đầu
+                .OrderByDescending(d => d.NgayDat)
                 .Select(d => new OrderHistoryDto
                 {
-                    DonHangId = d.DonHangId,
+                    DonHangId = d.DonHangId.ToString(),
                     TrangThai = d.TrangThai,
                     TongThanhToan = d.TongThanhToan,
                     NgayDat = d.NgayDat,
-                    // Lấy mã vận đơn từ bảng VanDon (nếu có)
-                    MaVanDon = _context.VanDons
-                        .Where(v => v.DonHangId == d.DonHangId)
-                        .Select(v => v.MaVanDon)
-                        .FirstOrDefault(),
-                    TrangThaiGiao = _context.VanDons
-                        .Where(v => v.DonHangId == d.DonHangId)
-                        .Select(v => v.TrangThaiGiao)
-                        .FirstOrDefault(),
-                    // Lấy chi tiết sản phẩm
-                    ChiTietItems = _context.DonHangChiTiets
-                        .Where(ct => ct.DonHangId == d.DonHangId)
-                        .Select(ct => new OrderDetailDto
+
+                    // Lấy MaVanDon từ bảng VanDon
+                    MaVanDon = d.VanDons.Select(v => v.MaVanDon).FirstOrDefault(),
+                    TrangThaiGiao = d.VanDons.Select(v => v.TrangThaiGiao).FirstOrDefault(),
+
+                    ChiTietItems = d.DonHangChiTiets.Select(ct => new OrderDetailDto
+                    {
+                        BienTheId = ct.BienTheId,
+                        SoLuong = ct.SoLuong,
+                        DonGia = ct.DonGia,
+
+                        // TenSanPham: DonHang_ChiTiet -> SanPham_BienThe -> SanPham
+                        TenSanPham = ct.BienThe.SanPham.TenSanPham.Replace(",", "").Replace(".", "").Trim(),
+
+                        // Size: SanPham_BienThe -> Size
+                        Size = ct.BienThe.Size.KyHieu,
+
+                        // MauSac: SanPham_BienThe -> MauSac
+                        MauSac = new MauSacDto
                         {
-                            BienTheId = ct.BienTheId,
-                            SoLuong = ct.SoLuong,
-                            DonGia = ct.DonGia
-                        }).ToList()
+                            Id = ct.BienThe.Mau.MauId,
+                            Ten = ct.BienThe.Mau.Ten,
+                            MaHex = ct.BienThe.Mau.MaHex ?? ""
+                        },
+
+                        // ImageUrl: Lấy từ bảng AnhSanPham liên kết với SanPhamID
+                        ImageUrl = ct.BienThe.SanPham.AnhSanPhams
+                            .OrderByDescending(a => a.IsPrimary)
+                            .Select(a => a.Url)
+                            .FirstOrDefault() ?? "default-product.jpg"
+                    }).ToList()
                 })
                 .ToListAsync();
 
             return orders;
         }
+        //public async Task<List<OrderHistoryDto>> GetPurchaseHistoryAsync(int userId)
+        //{
+        //    // 1. Tìm Khách hàng từ Tài khoản ID
+        //    var khachHang = await _context.KhachHangs
+        //        .AsNoTracking()
+        //        .FirstOrDefaultAsync(k => k.TaiKhoanId == userId);
+
+        //    if (khachHang == null) return new List<OrderHistoryDto>();
+
+        //    // 2. Query dữ liệu sử dụng Navigation Properties giống như ProductService
+        //    var orders = await _context.DonHangs
+        //        .AsNoTracking()
+        //        .Where(d => d.KhachHangId == khachHang.KhachHangId)
+        //        .OrderByDescending(d => d.NgayDat)
+        //        .Select(d => new OrderHistoryDto
+        //        {
+        //            // Chuyển DonHangId sang String để Flutter không bị lỗi ép kiểu (Type Mismatch)
+        //            DonHangId = d.DonHangId.ToString(),
+        //            TrangThai = d.TrangThai,
+        //            TongThanhToan = d.TongThanhToan,
+        //            NgayDat = d.NgayDat,
+
+        //            // Lấy thông tin vận đơn trực tiếp từ Navigation Property của DonHang
+        //            MaVanDon = d.VanDons.Select(v => v.MaVanDon).FirstOrDefault(),
+        //            TrangThaiGiao = d.VanDons.Select(v => v.TrangThaiGiao).FirstOrDefault(),
+
+        //            ChiTietItems = d.DonHangChiTiets.Select(ct => new OrderDetailDto
+        //            {
+        //                BienTheId = ct.BienTheId,
+        //                SoLuong = ct.SoLuong,
+        //                DonGia = ct.DonGia,
+
+        //                // 1. Lấy Tên sản phẩm qua đường dẫn: ChiTiet -> Biến Thể -> Sản phẩm
+        //                TenSanPham = ct.SanPhamBienThe.SanPham.TenSanPham,
+
+        //                // 2. Lấy SIZE: Truy cập qua bảng Size (Sử dụng KyHieu từ SizeDto)
+        //                Size = ct.SanPhamBienThe.Size.KyHieu,
+
+        //                // 3. Lấy MÀU: Truy cập qua bảng Mau (Sử dụng MauSacDto)
+        //                MauSac = new MauSacDto
+        //                {
+        //                    Id = ct.SanPhamBienThe.Mau.MauId,
+        //                    Ten = ct.SanPhamBienThe.Mau.Ten,
+        //                    MaHex = ct.SanPhamBienThe.Mau.MaHex ?? ""
+        //                },
+
+        //                // 4. Lấy ẢNH: Ưu tiên ảnh chính của sản phẩm
+        //                ImageUrl = ct.SanPhamBienThe.SanPham.AnhSanPhams
+        //                    .OrderByDescending(a => a.IsPrimary)
+        //                    .Select(a => a.Url)
+        //                    .FirstOrDefault() ?? "default-product.jpg"
+        //            }).ToList()
+        //        })
+        //        .ToListAsync();
+
+        //    return orders;
+        //}
+
     }
 }

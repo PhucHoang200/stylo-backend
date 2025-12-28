@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using StyloApp.API.Services;
 using StyloApp.API.DTOs;
+using Microsoft.EntityFrameworkCore;
 
 namespace StyloApp.API.Controllers
 {
@@ -46,15 +47,23 @@ namespace StyloApp.API.Controllers
         }
 
         // 2. API lấy giá theo lựa chọn Màu và Size
+        //[HttpGet("get-price")]
+        //public async Task<IActionResult> GetVariantPrice(int sanPhamId, int mauId, int sizeId)
+        //{
+        //    var price = await _productService.GetPriceByVariantAsync(sanPhamId, mauId, sizeId);
+
+        //    if (price == null)
+        //        return NotFound("Biến thể này hiện không tồn tại hoặc hết hàng.");
+
+        //    return Ok(new { Price = price });
+        //}
+
         [HttpGet("get-price")]
-        public async Task<IActionResult> GetVariantPrice(int sanPhamId, int mauId, int sizeId)
+        public async Task<IActionResult> GetVariant(int sanPhamId, int mauId, int sizeId)
         {
-            var price = await _productService.GetPriceByVariantAsync(sanPhamId, mauId, sizeId);
-
-            if (price == null)
-                return NotFound("Biến thể này hiện không tồn tại hoặc hết hàng.");
-
-            return Ok(new { Price = price });
+            var result = await _productService.GetVariantInfoAsync(sanPhamId, mauId, sizeId);
+            if (result == null) return NotFound("Không tìm thấy");
+            return Ok(result);
         }
 
         // API 1: Lấy toàn bộ phân loại (Dùng cho Menu chính)

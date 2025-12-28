@@ -74,7 +74,7 @@ namespace StyloApp.API.Services
 
                     // LẤY GIÁ BÁN THẤP NHẤT TỪ BẢNG BIẾN THỂ
                     GiaBan = sp.SanPhamBienThes.Any()
-                             ? sp.SanPhamBienThes.Max(bt => bt.GiaBan)
+                             ? sp.SanPhamBienThes.Min(bt => bt.GiaBan)
                              : 0,
 
                     // LẤY BIENTHEID CỦA THẰNG CÓ GIÁ THẤP NHẤT ĐÓ
@@ -132,15 +132,30 @@ namespace StyloApp.API.Services
                 .FirstOrDefaultAsync();
         }
 
-        public async Task<decimal?> GetPriceByVariantAsync(int sanPhamId, int mauId, int sizeId)
+        public async Task<VariantPriceDto?> GetVariantInfoAsync(int sanPhamId, int mauId, int sizeId)
         {
-            // API này dùng khi người dùng đã chọn đủ cả Màu và Size
+            // Dùng đúng tên cột trong DB của bạn là BienTheID và GiaBan
             return await _context.SanPhamBienThes
                 .AsNoTracking()
                 .Where(bt => bt.SanPhamId == sanPhamId && bt.MauId == mauId && bt.SizeId == sizeId)
-                .Select(bt => bt.GiaBan)
+                .Select(bt => new VariantPriceDto
+                {
+                    BienTheId = bt.BienTheId,
+                    GiaBan = bt.GiaBan
+                })
                 .FirstOrDefaultAsync();
         }
+
+        //public async Task<decimal?> GetPriceByVariantAsync(int sanPhamId, int mauId, int sizeId)
+        //{
+        //    // API này dùng khi người dùng đã chọn đủ cả Màu và Size
+        //    return await _context.SanPhamBienThes
+        //        .AsNoTracking()
+        //        .Where(bt => bt.SanPhamId == sanPhamId && bt.MauId == mauId && bt.SizeId == sizeId)
+        //        .Select(bt => bt.GiaBan)
+        //        .FirstOrDefaultAsync();
+        //}
+
 
         // 1. Lấy toàn bộ Phân loại
         public async Task<IEnumerable<PhanLoaiDto>> GetAllPhanLoaiAsync()
@@ -271,62 +286,62 @@ namespace StyloApp.API.Services
                 .ToListAsync();
         }
 
-        public async Task<(List<SanPhamBienTheHomeDto> Items, int Total)> SearchAsync(ProductSearchDto dto)
-        {
-            var query = _context.SanPhams
-                .AsNoTracking()
-                .Include(sp => sp.DanhMuc)
-                .AsQueryable();
+        //public async Task<(List<SanPhamBienTheHomeDto> Items, int Total)> SearchAsync(ProductSearchDto dto)
+        //{
+        //    var query = _context.SanPhams
+        //        .AsNoTracking()
+        //        .Include(sp => sp.DanhMuc)
+        //        .AsQueryable();
 
-            // SEARCH THEO TÊN SP + TÊN DANH MỤC
-            if (!string.IsNullOrWhiteSpace(dto.Keyword))
-            {
-                string keyword = dto.Keyword.Trim().ToLower();
+        //    // SEARCH THEO TÊN SP + TÊN DANH MỤC
+        //    if (!string.IsNullOrWhiteSpace(dto.Keyword))
+        //    {
+        //        string keyword = dto.Keyword.Trim().ToLower();
 
-                query = query.Where(sp =>
-                    sp.TenSanPham.ToLower().Contains(keyword) ||
-                    (sp.DanhMuc != null && sp.DanhMuc.Ten.ToLower().Contains(keyword))
-                );
-            }
+        //        query = query.Where(sp =>
+        //            sp.TenSanPham.ToLower().Contains(keyword) ||
+        //            (sp.DanhMuc != null && sp.DanhMuc.Ten.ToLower().Contains(keyword))
+        //        );
+        //    }
 
-            int total = await query.CountAsync();
+        //    int total = await query.CountAsync();
 
-            var items = await query
-                .OrderByDescending(sp => sp.SanPhamId)
-                .Skip((dto.Page - 1) * dto.PageSize)
-                .Take(dto.PageSize)
-                .Select(sp => new SanPhamBienTheHomeDto
-                {
-                    SanPhamId = sp.SanPhamId,
-                    TenSanPham = sp.TenSanPham,
-                    DanhMucId = sp.DanhMucId,
+        //    var items = await query
+        //        .OrderByDescending(sp => sp.SanPhamId)
+        //        .Skip((dto.Page - 1) * dto.PageSize)
+        //        .Take(dto.PageSize)
+        //        .Select(sp => new SanPhamBienTheHomeDto
+        //        {
+        //            SanPhamId = sp.SanPhamId,
+        //            TenSanPham = sp.TenSanPham,
+        //            DanhMucId = sp.DanhMucId,
 
-                    // GIÁ THẤP NHẤT
-                    GiaBan = sp.SanPhamBienThes.Any()
-                        ? sp.SanPhamBienThes.Min(bt => bt.GiaBan)
-                        : 0,
+        //            // GIÁ THẤP NHẤT
+        //            GiaBan = sp.SanPhamBienThes.Any()
+        //                ? sp.SanPhamBienThes.Min(bt => bt.GiaBan)
+        //                : 0,
 
-                    // BIẾN THỂ ĐẠI DIỆN
-                    BienTheId = sp.SanPhamBienThes
-                        .OrderBy(bt => bt.GiaBan)
-                        .Select(bt => bt.BienTheId)
-                        .FirstOrDefault(),
+        //            // BIẾN THỂ ĐẠI DIỆN
+        //            BienTheId = sp.SanPhamBienThes
+        //                .OrderBy(bt => bt.GiaBan)
+        //                .Select(bt => bt.BienTheId)
+        //                .FirstOrDefault(),
 
-                    Sku = sp.SanPhamBienThes
-                        .OrderBy(bt => bt.GiaBan)
-                        .Select(bt => bt.Sku)
-                        .FirstOrDefault(),
+        //            Sku = sp.SanPhamBienThes
+        //                .OrderBy(bt => bt.GiaBan)
+        //                .Select(bt => bt.Sku)
+        //                .FirstOrDefault(),
 
-                    // ẢNH ĐẠI DIỆN
-                    ImageUrl = sp.AnhSanPhams
-                        .OrderByDescending(a => a.IsPrimary)
-                        .Select(a => a.Url)
-                        .FirstOrDefault() ?? "default-product.jpg"
-                })
-                .ToListAsync();
+        //            // ẢNH ĐẠI DIỆN
+        //            ImageUrl = sp.AnhSanPhams
+        //                .OrderByDescending(a => a.IsPrimary)
+        //                .Select(a => a.Url)
+        //                .FirstOrDefault() ?? "default-product.jpg"
+        //        })
+        //        .ToListAsync();
 
-            return (items, total);
-        }
+        //    return (items, total);
+        //}
 
         public async Task<IEnumerable<SanPhamBienTheHomeDto>> SearchByImageAsync(IFormFile file, int k = 10)
         {
@@ -406,5 +421,7 @@ namespace StyloApp.API.Services
                 })
                 .ToListAsync();
         }
+
+
     }
 }
