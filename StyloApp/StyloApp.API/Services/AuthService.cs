@@ -34,7 +34,7 @@ namespace StyloApp.API.Services
         public async Task RegisterAsync(RegisterDto dto)
         {
             if (await _context.TaiKhoans.AnyAsync(x => x.TenDangNhap == dto.Email))
-                throw new ConflictException("Email already exists");
+                throw new ConflictException("Email này đã được sử dụng.");
 
             // 1. Tạo tài khoản
             var taiKhoan = new TaiKhoan
@@ -79,16 +79,16 @@ namespace StyloApp.API.Services
         public async Task VerifyOtpAsync(VerifyOtpDto dto)
         {
             if (!_cache.TryGetValue($"OTP_{dto.Email}", out string? cachedOtp))
-                throw new Exception("OTP expired");
+                throw new Exception("Mã OTP đã hết hạn hoặc không tồn tại.");
 
             if (cachedOtp != dto.Code)
-                throw new Exception("Invalid OTP");
+                throw new Exception("Mã OTP không chính xác.");
 
             var user = await _context.TaiKhoans
                 .FirstOrDefaultAsync(x => x.TenDangNhap == dto.Email);
 
             if (user == null)
-                throw new Exception("User not found");
+                throw new Exception("Không tìm thấy tài khoản người dùng.");
 
             user.EmailConfirmed = true;
             user.UpdatedAt = DateTime.UtcNow;
@@ -102,10 +102,10 @@ namespace StyloApp.API.Services
                 .FirstOrDefaultAsync(x => x.TenDangNhap == email);
 
             if (user == null)
-                throw new Exception("User not found");
+                throw new Exception("Tài khoản không tồn tại trên hệ thống.");
 
             if (user.EmailConfirmed)
-                throw new Exception("Email already verified");
+                throw new Exception("Email này đã được xác thực trước đó.");
 
             var otp = new Random().Next(1000, 9999).ToString();
 
@@ -120,10 +120,10 @@ namespace StyloApp.API.Services
                 .FirstOrDefaultAsync(x => x.TenDangNhap == dto.Email);
 
             if (taiKhoan == null)
-                throw new Exception("Account not found");
+                throw new Exception("Tài khoản hoặc mật khẩu không chính xác.");
 
             if (!taiKhoan.EmailConfirmed)
-                throw new Exception("Email is not verified");
+                throw new Exception("Tài khoản chưa được kích hoạt qua Email.");
 
             var result = _hasher.VerifyHashedPassword(
                 taiKhoan,
@@ -132,7 +132,7 @@ namespace StyloApp.API.Services
             );
 
             if (result == PasswordVerificationResult.Failed)
-                throw new Exception("Invalid password");
+                throw new Exception("Tài khoản hoặc mật khẩu không chính xác.");
 
             var khachHang = await _context.KhachHangs
                 .FirstOrDefaultAsync(k => k.TaiKhoanId == taiKhoan.TaiKhoanId);
@@ -154,10 +154,10 @@ namespace StyloApp.API.Services
                 .FirstOrDefaultAsync(x => x.TenDangNhap == email);
 
             if (taiKhoan == null)
-                throw new Exception("Account not found");
+                throw new Exception("Tài khoản không tồn tại.");
 
             if (!taiKhoan.EmailConfirmed)
-                throw new Exception("Email is not verified");
+                throw new Exception("Email của tài khoản này chưa được xác thực.");
 
             // Sinh OTP
             var otp = new Random().Next(1000, 9999).ToString();
@@ -173,10 +173,10 @@ namespace StyloApp.API.Services
         public void VerifyResetOtp(string email, string code)
         {
             if (!_cache.TryGetValue($"RESET_OTP_{email}", out string? cachedOtp))
-                throw new Exception("OTP expired");
+                throw new Exception("Mã xác thực đã hết hạn.");
 
             if (cachedOtp != code)
-                throw new Exception("Invalid OTP");
+                throw new Exception("Mã xác thực không chính xác.");
 
             _cache.Remove($"RESET_OTP_{email}");
         }
@@ -186,7 +186,7 @@ namespace StyloApp.API.Services
                 .FirstOrDefaultAsync(x => x.TenDangNhap == dto.Email);
 
             if (taiKhoan == null)
-                throw new Exception("Account not found");
+                throw new Exception("Không tìm thấy tài khoản để đặt lại mật khẩu.");
 
             taiKhoan.MatKhauHash =
                 _hasher.HashPassword(taiKhoan, dto.NewPassword);
