@@ -104,6 +104,38 @@ namespace StyloApp.API.Services
             await _context.SaveChangesAsync();
         }
 
+        // Thêm vào AccountService.cs
+        public async Task UpdateAddressAsync(int userId, int addressId, AddressDto dto)
+        {
+            var address = await _context.DiaChis
+                .FirstOrDefaultAsync(a => a.DiaChiId == addressId && a.TaiKhoanId == userId);
+
+            if (address == null) return;
+
+            address.DiaChiChiTiet = dto.DiaChiChiTiet;
+            address.LoaiDiaChi = dto.LoaiDiaChi;
+
+            // Nếu Flutter gửi lên isDefault = true
+            if (dto.IsDefault)
+            {
+                // Tắt mặc định tất cả các địa chỉ khác của User này
+                var otherAddresses = await _context.DiaChis
+                    .Where(a => a.TaiKhoanId == userId && a.DiaChiId != addressId)
+                    .ToListAsync();
+
+                foreach (var item in otherAddresses)
+                {
+                    item.IsDefault = false;
+                }
+                address.IsDefault = true;
+            }
+            // Lưu ý: Không nên cho phép set isDefault từ true về false 
+            // nếu đây là địa chỉ mặc định duy nhất (đúng logic Shopee).
+
+            address.UpdatedAt = DateTime.Now;
+            await _context.SaveChangesAsync();
+        }
+
         // Xóa địa chỉ
         public async Task<bool> DeleteAddressAsync(int userId, int addressId)
         {

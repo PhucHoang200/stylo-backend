@@ -58,6 +58,19 @@ namespace StyloApp.API.Controllers
             return Ok(new { message = "Thêm địa chỉ thành công" });
         }
 
+        // Thêm vào AccountController.cs
+        [HttpPut("addresses/{id}")]
+        public async Task<IActionResult> UpdateAddress(int id, AddressDto dto)
+        {
+            // Lấy UserId từ Token
+            int userId = User.GetUserId();
+
+            // Gọi hàm cập nhật trong Service (Cần thêm hàm này vào Service như hướng dẫn dưới đây)
+            await _accountService.UpdateAddressAsync(userId, id, dto);
+
+            return Ok(new { message = "Cập nhật địa chỉ thành công" });
+        }
+
         [HttpDelete("addresses/{id}")]
         public async Task<IActionResult> DeleteAddress(int id)
         {

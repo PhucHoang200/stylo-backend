@@ -15,18 +15,6 @@ var builder = WebApplication.CreateBuilder(args);
 var jwtSecretKey = "Day_La_Chuoi_Bi_Mat_Sieu_Cap_Vip_Pro_Cua_Stylo_App_Nam_2025_Ngon_Lanh_Canh_Dao";
 var key = Encoding.UTF8.GetBytes(jwtSecretKey);
 
-// 1. KHAI BÁO CHÍNH SÁCH CORS (Thêm vào trước builder.Build())
-//builder.Services.AddCors(options =>
-//{
-//    options.AddPolicy("AllowFlutterApp",
-//        policy =>
-//        {
-//            policy.AllowAnyOrigin() // Cho phép tất cả các nguồn (Origin)
-//                  .AllowAnyHeader() // Cho phép tất cả các Header
-//                  .AllowAnyMethod(); // Cho phép tất cả các phương thức (GET, POST,...)
-//        });
-//});
-
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowFlutterWeb", policy =>
@@ -109,23 +97,10 @@ else
     app.UseMiddleware<ExceptionMiddleware>();
 }
 
-//app.UseHttpsRedirection();
-
-// 2. SỬ DỤNG MIDDLEWARE CORS (Phải đặt ĐÚNG THỨ TỰ)
-// Nó phải nằm SAU UseHttpsRedirection và TRƯỚC UseAuthentication/UseAuthorization
-
 app.UseCors("AllowFlutterWeb");
 
 // Expose /Content/images/**
-app.UseStaticFiles(
-//    new StaticFileOptions
-//{
-//    FileProvider = new PhysicalFileProvider(
-//        Path.Combine(builder.Environment.WebRootPath, "Content")
-//    ),
-//    RequestPath = "/Content"
-//}
-);
+app.UseStaticFiles();
 
 app.UseAuthentication();
 app.UseAuthorization();
