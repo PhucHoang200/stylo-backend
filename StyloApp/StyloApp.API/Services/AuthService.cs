@@ -75,7 +75,7 @@ namespace StyloApp.API.Services
 
             // 4. Gửi email
             await _emailService.SendOtpAsync(dto.Email, otp);
-        }
+        } 
         public async Task VerifyOtpAsync(VerifyOtpDto dto)
         {
             if (!_cache.TryGetValue($"OTP_{dto.Email}", out string? cachedOtp))
