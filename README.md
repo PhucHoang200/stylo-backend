@@ -1,8 +1,25 @@
 # 👗 STYLO – Backend API
 
-Backend API trung tâm cho hệ thống **Stylo – Fashion Store Management System**.  
+Backend API trung tâm cho hệ thống **Stylo – Fashion Store Management System**.
 Dịch vụ này chịu trách nhiệm xử lý toàn bộ nghiệp vụ cốt lõi, quản lý dữ liệu
 và điều phối giao tiếp giữa ứng dụng frontend và các AI services.
+
+---
+
+## 📂 Related Repositories
+
+Hệ thống Stylo bao gồm nhiều repository độc lập:
+
+* 🔹 **Frontend (Flutter Mobile App)**
+  👉 [https://github.com/PhucHoang200/stylo-frontend.git](https://github.com/PhucHoang200/stylo-frontend.git)
+
+* 🔹 **AI Image Search Service (CNN)**
+  👉 [https://github.com/PhucHoang200/image-search-service.git](https://github.com/PhucHoang200/image-search-service.git)
+
+* 🔹 **AI Recommendation Service**
+  👉 [https://github.com/PhucHoang200/recommend-service-fastapi.git](https://github.com/PhucHoang200/recommend-service-fastapi.git)
+
+> Backend API (repo này) đóng vai trò trung tâm và kết nối tất cả các thành phần trên.
 
 ---
 
@@ -10,10 +27,10 @@ và điều phối giao tiếp giữa ứng dụng frontend và các AI services
 
 Hệ thống Stylo được xây dựng theo kiến trúc đa tầng, gồm các thành phần:
 
-- **Mobile App (Flutter)**: giao diện người dùng
-- **Backend API (repo này)**: xử lý nghiệp vụ và điều phối hệ thống
-- **AI Image Search Service**: tìm kiếm sản phẩm bằng hình ảnh
-- **AI Recommendation Service**: gợi ý sản phẩm thông minh
+* **Mobile App (Flutter)**: giao diện người dùng
+* **Backend API (repo này)**: xử lý nghiệp vụ và điều phối hệ thống
+* **AI Image Search Service**: tìm kiếm sản phẩm bằng hình ảnh
+* **AI Recommendation Service**: gợi ý sản phẩm thông minh
 
 Backend API đóng vai trò **trung tâm**, cung cấp API cho frontend
 và làm cầu nối giao tiếp với các AI services.
@@ -28,7 +45,7 @@ Flutter Mobile App
 ASP.NET Core Web API
         ↓
 FastAPI AI Services
-````
+```
 
 ---
 
@@ -122,10 +139,3 @@ src/
  ├─ Data/
  └─ Program.cs
 ```
-
----
-
-## ⚠️ Notes
-
-* Backend được thiết kế để dễ mở rộng khi bổ sung thêm service mới
-* Có thể tích hợp thêm caching, logging hoặc message queue khi cần mở rộng hệ thống
