@@ -15,6 +15,8 @@ public partial class AnhSanPham
 
     public bool IsPrimary { get; set; }
 
+    public bool ExternalAnhID { get; set; }
+
     public virtual SanPhamBienThe? BienThe { get; set; }
 
     public virtual SanPham? SanPham { get; set; }

@@ -8,21 +8,22 @@ using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using Microsoft.OpenApi.Models;
 using Microsoft.Extensions.FileProviders;
+using System.Text.Json.Serialization;
 
 
 var builder = WebApplication.CreateBuilder(args);
+
 // --- 1. CẤU HÌNH SECRET KEY (Nên để trong appsettings.json, nhưng ở đây tôi fix cứng để bạn test) ---
 var jwtSecretKey = "Day_La_Chuoi_Bi_Mat_Sieu_Cap_Vip_Pro_Cua_Stylo_App_Nam_2025_Ngon_Lanh_Canh_Dao";
 var key = Encoding.UTF8.GetBytes(jwtSecretKey);
 
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowFlutterWeb", policy =>
+    options.AddPolicy("AllowAll", policy =>
     {
-        policy
-            .AllowAnyOrigin()
-            .AllowAnyMethod()
-            .AllowAnyHeader();
+        policy.AllowAnyOrigin()
+              .AllowAnyMethod()
+              .AllowAnyHeader();
     });
 });
 
@@ -32,7 +33,14 @@ builder.Services.AddDbContext<FashionShopContext>(options =>
         builder.Configuration.GetConnectionString("DefaultConnection")
     ));
 
-builder.Services.AddControllers();
+// Thêm thư viện này ở đầu file nếu chưa có: using System.Text.Json.Serialization;
+
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        // Xử lý lỗi vòng lặp vô tận trong JSON
+        options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
+    });
 builder.Services.AddHttpClient();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
@@ -97,7 +105,7 @@ else
     app.UseMiddleware<ExceptionMiddleware>();
 }
 
-app.UseCors("AllowFlutterWeb");
+app.UseCors("AllowAll");
 
 // Expose /Content/images/**
 app.UseStaticFiles();
